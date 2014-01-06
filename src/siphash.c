@@ -4,9 +4,6 @@
 
 #define siphash crypto_auth
 
-#ifdef MRB_ENDIAN_BIG
-#endif
-
 #define DEFAULT_SEED "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 
 static mrb_value
@@ -19,6 +16,10 @@ mrb_siphash_digest(mrb_state *mrb, mrb_value self)
   struct RString *pstr;
   struct RString *pseed;
   uint8_t digest[8];
+#ifndef MRB_ENDIAN_BIG
+  uint8_t roll[8];
+  int i;
+#endif
 
   mrb_get_args(mrb, "*", &argv, &argc);
 
@@ -43,6 +44,13 @@ mrb_siphash_digest(mrb_state *mrb, mrb_value self)
   }
 
   siphash(digest, (const unsigned char*) pstr->ptr, pstr->len, (const unsigned char*) pseed->ptr);
+
+#ifndef MRB_ENDIAN_BIG
+  for (i = 0; i < 8; i++) {
+    roll[i] = digest[7 - i];
+  }
+  memcpy(digest, roll, 8);
+#endif
 
   return mrb_str_new(mrb, (char*) digest, 8);
 }
