@@ -7,3 +7,20 @@ end
 assert 'digest mruby with seed' do
   SipHash::digest("mruby", seed) == "\x41\x69\xd4\x8b\xa6\xdb\x7e\x68"
 end
+
+assert 'SipHash::DEFAULT_SEED' do
+  assert_kind_of String, SipHash::DEFAULT_SEED
+  assert_equal SipHash::DEFAULT_SEED.length, 16
+end
+
+assert 'digest must be string' do
+  assert_raise(TypeError) do
+    SipHash::digest(1)
+  end
+end
+
+assert 'seed value must be 16 length string' do
+  assert_raise(ArgumentError) do
+    SipHash::digest("", "")
+  end
+end
