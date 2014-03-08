@@ -12,8 +12,6 @@ mrb_siphash_digest(mrb_state *mrb, mrb_value self)
 {
   mrb_value str;
   mrb_value seed = mrb_nil_value();
-  struct RString *pstr;
-  struct RString *pseed;
   mrb_sym id_DEFAULT_SEED;
   mrb_value klass;
   uint8_t digest[8];
@@ -23,21 +21,16 @@ mrb_siphash_digest(mrb_state *mrb, mrb_value self)
 #endif
 
   mrb_get_args(mrb, "S|S", &str, &seed);
-
   if (mrb_nil_p(seed)) {
-    klass = mrb_obj_value(mrb_class_get(mrb, "SipHash"));
+    klass = mrb_obj_value(mrb_module_get(mrb, "SipHash"));
     id_DEFAULT_SEED = mrb_intern_cstr(mrb, "DEFAULT_SEED");
     seed = mrb_const_get(mrb, klass, id_DEFAULT_SEED);
   }
-
-  pstr = mrb_str_ptr(str);
-  pseed = mrb_str_ptr(seed);
-
-  if (pseed->len != 16) {
+  if (RSTRING_LEN(seed) != 16) {
     mrb_raise(mrb, E_ARGUMENT_ERROR, "seed value must be 16 length string");
   }
 
-  siphash(digest, (const unsigned char*) pstr->ptr, pstr->len, (const unsigned char*) pseed->ptr);
+  siphash(digest, (const unsigned char*) RSTRING_PTR(str), RSTRING_LEN(str), (const unsigned char*) RSTRING_PTR(seed));
 
 #ifndef MRB_ENDIAN_BIG
   for (i = 0; i < 8; i++) {
